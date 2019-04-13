@@ -3,7 +3,8 @@ import React from 'react';
 const Rank = () => {
   return (
     <div>
-      <p className="f3">{'Rank'}</p>
+      <div className="white f5">{'Andrei, your current rank is ...'}</div>
+      <div className="white f3">{'#5'}</div>
     </div>
   );
 };

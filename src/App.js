@@ -5,7 +5,12 @@ import Clarifai from 'clarifai';
 import './App.css';
 import Navigation from './components/navigation/Navigation';
 import Rank from './components/rank/Rank';
-import ImageLinkForm from './components/imageLinkForm/ImageLinkForm';
+import ImageLinkForm from './components/image-link-form/ImageLinkForm';
+import FaceRecognition from './components/face-recognition/FaceRecognition';
+
+const app = new Clarifai.App({
+  apiKey: '945947772cfd484a8b0bb5ea0aed8dfe'
+});
 
 const options = {
   particles: {
@@ -38,7 +43,7 @@ class App extends Component {
   onSubmit = () => {
     app.models
       .predict(
-        '945947772cfd484a8b0bb5ea0aed8dfe',
+        'a403429f2ddf4b49b307e318f00e528b',
         'https://samples.clarifai.com/face-det.jpg'
       )
       .then(
@@ -61,7 +66,7 @@ class App extends Component {
           onInputChange={this.onInputChange}
           onButtonSubmit={this.onSubmit}
         />
-        {/* <FaceRecognition /> */}
+        <FaceRecognition imageURL={this.state.input} />
       </div>
     );
   }

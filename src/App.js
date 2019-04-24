@@ -3,6 +3,8 @@ import Particles from 'react-particles-js';
 import Clarifai from 'clarifai';
 
 import './App.css';
+import SignIn from './components/sign-in/SignIn';
+import Register from './components/register/Register';
 import Navigation from './components/navigation/Navigation';
 import Rank from './components/rank/Rank';
 import ImageLinkForm from './components/image-link-form/ImageLinkForm';
@@ -33,40 +35,88 @@ const options = {
 
 class App extends Component {
   state = {
-    input: ''
+    input: '',
+    imageURL: '',
+    box: {},
+    route: 'signin',
+    isAuthenticated: false
+  };
+
+  calculateFaceLocation = response => {
+    const clarifaiFace =
+      response.outputs[0].data.regions[0].region_info.bounding_box;
+
+    const image = document.getElementById('inputImage');
+    const width = Number(image.width);
+    const height = Number(image.height);
+
+    return {
+      leftCol: clarifaiFace.left_col * width,
+      topRow: clarifaiFace.top_row * height,
+      rightCol: width - clarifaiFace.right_col * width,
+      bottomRow: height - clarifaiFace.bottom_row * height
+    };
+  };
+
+  displayFaceBox = box => {
+    console.log(box);
+    this.setState({ box });
   };
 
   onInputChange = event => {
-    console.log(event.target.value);
+    this.setState({ input: event.target.value });
   };
 
   onSubmit = () => {
+    this.setState({ imageURL: this.state.input });
     app.models
-      .predict(
-        'a403429f2ddf4b49b307e318f00e528b',
-        'https://samples.clarifai.com/face-det.jpg'
+      .predict(Clarifai.FACE_DETECT_MODEL, this.state.input)
+      .then(response =>
+        this.displayFaceBox(this.calculateFaceLocation(response))
       )
-      .then(
-        response => {
-          console.log(response);
-        },
-        err => {
-          console.log(err);
-        }
-      );
+      .catch(err => console.log(err));
+  };
+
+  onRouteChange = route => {
+    this.setState({ route });
+  };
+
+  onAuthChange = () => {
+    this.setState({ isAuthenticated: !this.state.isAuthenticated });
   };
 
   render() {
     return (
       <div className="App">
         <Particles className="particles" params={options} />
-        <Navigation />
-        <Rank />
-        <ImageLinkForm
-          onInputChange={this.onInputChange}
-          onButtonSubmit={this.onSubmit}
+        <Navigation
+          isAuthenticated={this.state.isAuthenticated}
+          onAuthChange={this.onAuthChange}
+          onRouteChange={this.onRouteChange}
         />
-        <FaceRecognition imageURL={this.state.input} />
+        {this.state.route === 'home' ? (
+          <div>
+            <Rank />
+            <ImageLinkForm
+              onInputChange={this.onInputChange}
+              onButtonSubmit={this.onSubmit}
+            />
+            <FaceRecognition
+              box={this.state.box}
+              imageURL={this.state.imageURL}
+            />
+          </div>
+        ) : this.state.route === 'signin' ? (
+          <SignIn
+            onAuthChange={this.onAuthChange}
+            onRouteChange={this.onRouteChange}
+          />
+        ) : (
+          <Register
+            onAuthChange={this.onAuthChange}
+            onRouteChange={this.onRouteChange}
+          />
+        )}
       </div>
     );
   }
